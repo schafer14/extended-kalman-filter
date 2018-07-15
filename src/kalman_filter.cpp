@@ -29,10 +29,6 @@ void KalmanFilter::Predict() {
 }
 
 void KalmanFilter::Update(const VectorXd &z) {
-  /**
-  TODO:
-    * update the state by using Kalman Filter equations
-  */ 
   MatrixXd I = MatrixXd::Identity(4, 4);
 
   MatrixXd y = z - H_ * x_;
@@ -46,9 +42,37 @@ void KalmanFilter::Update(const VectorXd &z) {
 }
 
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
-  /**
-  TODO:
-    * update the state by using Extended Kalman Filter equations
-  */
+  float px = x_[0];
+  float py = x_[1];
+  float vx = x_[2];
+  float vy = x_[3];
+
+  MatrixXd Hj = tools.CalculateJacobian(x_);
+
+  MatrixXd I = MatrixXd::Identity(4, 4);
+
+  MatrixXd R = MatrixXd(3, 3);
+  R << 0.09, 0, 0,
+        0, 0.0009, 0,
+        0, 0, 0.09;
+
+  if (z[1] < -3.14159 || z[1] > 3.14159) {
+    cout << "Bad radar measurement: " << z[1] << endl;
+    return ;
+  }
+
+  VectorXd hX = VectorXd(3);
+  hX << sqrt(px * px + py * py),
+        atan2(py, px),
+        (px * vx + py * vy) / sqrt(px * px + py * py);
   
+
+
+  MatrixXd y = z - hX;
+  MatrixXd S = Hj * P_ * Hj.transpose() + R;
+  MatrixXd K = P_ * Hj.transpose() * S.inverse();
+
+
+  x_ = x_ + (K * y);
+  P_ = (I - K * Hj) * P_;
 }
