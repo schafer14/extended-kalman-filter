@@ -37,17 +37,21 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
 	float vx = x_state[2];
 	float vy = x_state[3];
 
-	if(fabs(px) < 0.00001 || fabs(py) < 0.00001){
+	if(fabs(px) < 0.00001 && fabs(py) < 0.00001){
 		cout << "CalculateJacobian () - Error - Division by Zero" << endl;
 		return Hj;
 	}
 	
-	float dpdpx = px / sqrt(px * px + py * py);
-	float dpdpy = py / sqrt(px * px + py * py);
-	float drdpx = - py / (px * px + py * py);
-	float drdpy = px / (px * px + py * py);
-	float dvdpx = py * (vx * py - vx * py) / pow(px * px + py * py, 3 / 2);
-	float dvdpy = px * (vy * px - vx * py) / pow(px * px + py * py, 3 / 2);
+	float px2py2 = px * px + py * py;
+	float sqrtpx2py2 = sqrt(px2py2);
+	float dem = px2py2 * sqrtpx2py2;
+	
+	float dpdpx = px / sqrtpx2py2;
+	float dpdpy = py / sqrtpx2py2;
+	float drdpx = - py / px2py2;
+	float drdpy = px / px2py2;
+	float dvdpx = (py * (vx * py - vy * px)) / dem;
+	float dvdpy = (px * (vy * px - vx * py)) / dem;
 	float dvdvx = px / sqrt(px * px + py * py);
 	float dvdvy = py / sqrt(px * px + py * py);
 	
